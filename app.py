@@ -13,10 +13,10 @@ cache = redis.Redis(host='redis', port=6379)
 def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000):
     for i in range(times):
         resp=requests.get('%s' % url)
-        ipdb.set_trace()
+        #ipdb.set_trace()
         map=record(resp.json()['servername'])
 
-def record(server_):
+def recordserver(server_):
     retries=10
     while True:
         try:
@@ -26,7 +26,7 @@ def record(server_):
             else:
                 map[server_]=1
 
-        except redis.exceptions.ConnectionError as exec:
+        except redis.exceptions.ConnectionError as exc:
             if retries==0:
                 raise exc
             retries-=1
