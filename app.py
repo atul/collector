@@ -3,15 +3,17 @@ import logging
 import redis
 from flask import Flask, request, jsonify
 import requests
+import ipdb
 logging.basicConfig(filename='error.log',level=logging.DEBUG)
 app = Flask(__name__)
 app.config["DEBUG"]=True
 map={}
 cache = redis.Redis(host='redis', port=6379)
 
-def check_server_load_distribution(url='http://188.188.188.1:4919/check', times=1000):
-    for i in range(1000):
+def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000):
+    for i in range(times):
         resp=requests.get('%s' % url)
+        ipdb.set_trace()
         map=record(resp.json()['servername'])
 
 def record(server_):
@@ -53,7 +55,7 @@ def get_map(remaddr):
 
 @app.route('/check')
 def check():
-    check_server_load_distribution(url='http://188.188.188.1:4919/check', times=1000)
+    check_server_load_distribution(url='http://188.188.188.1:4919', times=1000)
 
 @app.route('/')
 def result():
