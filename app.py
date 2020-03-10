@@ -54,7 +54,7 @@ def get_map(remaddr):
 @app.route('/check')
 def check():
     check_server_load_distribution(url='http://188.188.188.1:4919', times=1000)
-    return 200
+    return 'OK'
 
 @app.route('/')
 def result():
