@@ -9,8 +9,27 @@ app.config["DEBUG"]=True
 map={}
 cache = redis.Redis(host='redis', port=6379)
 
-def check_server_load_distribution():
-    pass
+def check_server_load_distribution(url='http://188.188.188.1:4919/check', times=1000):
+    for i in range(1000):
+        resp=requests.get('%s' % url)
+        map=record(resp.json()['servername'])
+
+def record(server_)
+    retries=10
+    while True:
+        try:
+            if server_ in map.keys():
+                hits=cache.incr('hits')
+                map[server_]=hits
+            else:
+                map[server_]=1
+
+        except redis.exceptions.ConnectionError as exec:
+            if retries==0:
+                raise exc
+            retries-=1
+            time.sleep(0.5)
+
 
 
 def get_map(remaddr):
@@ -34,15 +53,11 @@ def get_map(remaddr):
 
 @app.route('/check')
 def check():
-    for i in range(1000):
-        resp=requests.get('http://188.188.188.1:4919')
-        #return 'Result {} \n'.format(resp.json())
-        map=get_map(resp.json()['servername'])
+    check_server_load_distribution(url='http://188.188.188.1:4919/check', times=1000)
 
 @app.route('/')
 def result():
     return 'Result map:\n {} \n'.format(map)
-
 
 @app.route('/record')
 def record():
