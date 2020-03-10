@@ -3,6 +3,7 @@ import logging
 import redis
 from flask import Flask, request, jsonify
 import requests
+import math
 import ipdb
 logging.basicConfig(filename='error.log',level=logging.DEBUG)
 app = Flask(__name__)
@@ -16,8 +17,29 @@ def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000)
         #time.sleep(0.1)
         map=recordserver(resp.json()['servername'])
 
+def average(data):
+    if not len(data):
+        return None
+    return sum(data) * 1.0 / len(data)
+
+def validate_distribution(map):
+    sum=0
+    data=[]
+    for k in map.keys():
+        data.append(op[k])
+    servers=len(data)
+    variance = map(lambda x: (x - average(data))**2, data)
+    average_variance = average(variance)
+    if average_variance:
+        standard_deviation = math.sqrt(average_variance)
+    else:
+        standard_deviation = 0
+
+    return standard_deviation, sum, servers
+
 
 def recordserver(server_):
+    cache.flushall()
     retries=10
     while True:
         try:
@@ -53,9 +75,9 @@ def get_map(remaddr):
 
 @app.route('/check')
 def check():
-    map={}
     check_server_load_distribution(url='http://188.188.188.1:4919', times=1000)
-    return 'OK'
+    std_dev, total, servers=validate_distribution(map)
+    return 'Result: standard_deviation: %s, total requests: %s, Number of servers: %s' % (std_dev, total, servers), 200
 
 @app.route('/')
 def result():
