@@ -13,7 +13,7 @@ cache = redis.Redis(host='redis', port=6379)
 def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000):
     for i in range(times):
         resp=requests.get('%s' % url)
-        sleep(0.1)
+        time.sleep(0.1)
         map=recordserver(resp.json()['servername'])
 
 
