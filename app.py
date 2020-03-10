@@ -16,6 +16,7 @@ def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000)
         sleep(0.1)
         map=recordserver(resp.json()['servername'])
 
+
 def recordserver(server_):
     retries=10
     while True:
@@ -25,7 +26,7 @@ def recordserver(server_):
                 map[server_]=hits
             else:
                 map[server_]=1
-
+            return map
         except redis.exceptions.ConnectionError as exc:
             if retries==0:
                 raise exc
@@ -35,16 +36,13 @@ def recordserver(server_):
 
 
 def get_map(remaddr):
-    print("%s" % map)
-    retries = 5
+    retries = 10
     while True:
         try:
             if remaddr in map.keys():
-                #app.logger.info("%s is in keys, incrementing value" % remaddr)
                 hits=cache.incr('hits')
                 map[remaddr]=hits
             else:
-                #app.logger.info("%s is not in keys, adding key" % remaddr)
                 map[remaddr]=1
             return map
         except redis.exceptions.ConnectionError as exc:
@@ -56,10 +54,11 @@ def get_map(remaddr):
 @app.route('/check')
 def check():
     check_server_load_distribution(url='http://188.188.188.1:4919', times=1000)
+    return 200
 
 @app.route('/')
 def result():
-    return 'Result map:\n {} \n'.format(map)
+    return 'Result map:\n {} \n'.format(map), 200
 
 @app.route('/record')
 def record():
