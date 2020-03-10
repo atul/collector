@@ -4,6 +4,7 @@ import redis
 from flask import Flask, request, jsonify
 import requests
 import math
+import statistics
 import ipdb
 logging.basicConfig(filename='error.log',level=logging.DEBUG)
 app = Flask(__name__)
@@ -23,19 +24,21 @@ def average(data):
     return sum(data) * 1.0 / len(data)
 
 def validate_distribution(map):
-    sum=0
+    servers=0
     data=[]
     for k in map.keys():
-        data.append(op[k])
+        data.append(map[k])
     servers=len(data)
-    variance = map(lambda x: (x - average(data))**2, data)
-    average_variance = average(variance)
-    if average_variance:
-        standard_deviation = math.sqrt(average_variance)
-    else:
-        standard_deviation = 0
+    total=math.sum(data)
+    #variance = map(lambda x: (x - average(data))**2, data)
+    #average_variance = average(variance)
+    #if average_variance:
+    #    standard_deviation = math.sqrt(average_variance)
+    #else:
+    #    standard_deviation = 0
 
-    return standard_deviation, sum, servers
+    standard_deviation = statistics.stdev(data)
+    return standard_deviation, total, servers
 
 
 def recordserver(server_):
