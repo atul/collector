@@ -19,11 +19,11 @@ def get_map(remaddr):
     while True:
         try:
             if remaddr in map.keys():
-                app.logger.info("%s is in keys, incrementing value" % remaddr)
+                #app.logger.info("%s is in keys, incrementing value" % remaddr)
                 hits=cache.incr('hits')
                 map[remaddr]=hits
             else:
-                app.logger.info("%s is not in keys, adding key" % remaddr)
+                #app.logger.info("%s is not in keys, adding key" % remaddr)
                 map[remaddr]=1
             return map
         except redis.exceptions.ConnectionError as exc:
@@ -47,10 +47,10 @@ def result():
 @app.route('/record')
 def record():
     map = get_map(request.environ['REMOTE_ADDR'])
-    app.logger.info("%s" % map)
+    #app.logger.info("%s" % map)
     return 'Result map {} \n'.format(map)
 
 @app.route('/resultmap')
 def resultmap():
-    app.logger.info("%s" % map)
+    #app.logger.info("%s" % map)
     return 'Result map {} \n'.format(map)
