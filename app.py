@@ -14,7 +14,7 @@ def check_server_load_distribution(url='http://188.188.188.1:4919/check', times=
         resp=requests.get('%s' % url)
         map=record(resp.json()['servername'])
 
-def record(server_)
+def record(server_):
     retries=10
     while True:
         try:
