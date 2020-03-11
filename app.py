@@ -14,11 +14,12 @@ cache = redis.Redis(host='redis', port=6379)
 
 def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000):
     resetmap()
-    cache.delete(0)
+
     for i in range(times):
         resp=requests.get('%s' % url)
         #time.sleep(0.1)
-        map=recordserver(resp.json()['servername'])
+        #map=recordserver(resp.json()['servername'])
+        map=update_map(resp.json()['servername'])
 
 def average(data):
     if not len(data):
@@ -31,29 +32,37 @@ def validate_distribution(map):
     for k in map.keys():
         data.append(map[k])
     servers=len(data)
-    total=math.sum(data)
+    total=sum(data)
     standard_deviation = statistics.stdev(data)
+    app.logger.info("%s" % map)
     return standard_deviation, total, servers
 
+def update_map(k):
+    if k in map.keys():
+        map[k]=map[k]+1
+    else:
+        map[k]=1
 def resetmap():
     for k in map.keys():
         map[k]=0
+    cache.delete(0)
 
-def recordserver(server_):
-    retries=10
+def recordserver(k):
+    retries=5
+    hits=0
     while True:
         try:
-            if server_ in map.keys():
-                hits=cache.incr(map['server_'])
+            if k in map.keys():
+                hits=cache.incr(map[k])
+                map[k]=hits
             else:
-                map[server_]=1
+                map[k]=1
             return map
         except redis.exceptions.ConnectionError as exc:
             if retries==0:
                 raise exc
             retries-=1
             time.sleep(0.5)
-
 
 
 def get_map(remaddr):
@@ -74,7 +83,7 @@ def get_map(remaddr):
 
 @app.route('/check')
 def check():
-    check_server_load_distribution(url='http://188.188.188.1:4919', times=1000)
+    check_server_load_distribution(url='http://188.188.188.1:4919', times=100)
     std_dev, total, servers=validate_distribution(map)
     return 'Result: standard_deviation: %s, total requests: %s, Number of servers: %s\n' % (std_dev, total, servers), 200
 
