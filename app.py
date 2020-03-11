@@ -13,6 +13,8 @@ map={}
 cache = redis.Redis(host='redis', port=6379)
 
 def check_server_load_distribution(url='http://188.188.188.1:4919/', times=1000):
+    resetmap()
+    cache.delete(0)
     for i in range(times):
         resp=requests.get('%s' % url)
         #time.sleep(0.1)
@@ -30,25 +32,19 @@ def validate_distribution(map):
         data.append(map[k])
     servers=len(data)
     total=math.sum(data)
-    #variance = map(lambda x: (x - average(data))**2, data)
-    #average_variance = average(variance)
-    #if average_variance:
-    #    standard_deviation = math.sqrt(average_variance)
-    #else:
-    #    standard_deviation = 0
-
     standard_deviation = statistics.stdev(data)
     return standard_deviation, total, servers
 
+def resetmap():
+    for k in map.keys():
+        map[k]=0
 
 def recordserver(server_):
-    cache.flushall()
     retries=10
     while True:
         try:
             if server_ in map.keys():
-                hits=cache.incr('hits')
-                map[server_]=hits
+                hits=cache.incr(map['server_'])
             else:
                 map[server_]=1
             return map
@@ -80,7 +76,7 @@ def get_map(remaddr):
 def check():
     check_server_load_distribution(url='http://188.188.188.1:4919', times=1000)
     std_dev, total, servers=validate_distribution(map)
-    return 'Result: standard_deviation: %s, total requests: %s, Number of servers: %s' % (std_dev, total, servers), 200
+    return 'Result: standard_deviation: %s, total requests: %s, Number of servers: %s\n' % (std_dev, total, servers), 200
 
 @app.route('/')
 def result():
